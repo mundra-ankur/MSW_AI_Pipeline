@@ -1,0 +1,16 @@
+{
+  "cos": {
+    "apikey": "<apikey>",
+    "service_endpoint": "https://s3.us.cloud-object-storage.appdomain.cloud",
+    "auth_endpoint": "https://iam.cloud.ibm.com/identity/token",
+    "resource_instance_id": "crn:v1:bluemix:public:cloud-object-storage:global:a/c.......",
+    "bucket": ""
+  },
+
+  "cloudant": {
+      "apikey": "<apikey>",
+      "url": "https://71fc46ac-df6e-45f7-988e-a4b28aa5380d-bluemix.cloudantnosqldb.appdomain.cloud",
+      "db": "<db_name>",
+      "processed_db": "<processed_db_name>"
+  }
+}
