@@ -1,0 +1,6 @@
+data/
+config/ibm_config.json
+model/.DS_Store
+.DS_Store
+.idea/
+src/__pycache__/

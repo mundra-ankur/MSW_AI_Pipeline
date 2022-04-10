@@ -6,7 +6,7 @@ from upload_processed_data import UploadData
 
 
 class Annotation:
-    ADAPTIVE_THRESHOLD_CONTOUR = 0
+    ADAPTIVE_THRESHOLD_CONTOUR = 0  # add this in meta file
     EDGE_DETECTION_CONTOUR = 1
 
     def find_contours(self, image, method=0):
@@ -68,36 +68,28 @@ class Annotation:
         cv.waitKey(0)
         cv.destroyAllWindows()
 
-    @staticmethod
-    def convert_yolo_format(coordinates, width, height):
-        dw = 1.0 / width
-        dh = 1.0 / height
-
-        x, y, w, h = coordinates
-        x = (x + w / 2) * dw
-        y = (y + h / 2) * dh
-        w = w * dw
-        h = h * dh
-
-        return [x, y, w, h]
+    def get_annotated_data(self):
+        return self.annotated_data
 
     def __init__(self):
+        self.annotated_data = []
         resize = ImageResize(416, 416, cv.INTER_LINEAR)
         metadata, data, labels = resize.get_resized_data()
-
+        coordinates = []
         # for file in os.listdir('data'):
         for meta, image, label in zip(metadata, data, labels):
             # Make a copy
             new_image = image.copy()
-            contours_edge = self.find_contours(new_image, self.EDGE_DETECTION_CONTOUR)
+            # contours_edge = self.find_contours(new_image, self.EDGE_DETECTION_CONTOUR)
             contours_adaptive = self.find_contours(new_image, self.ADAPTIVE_THRESHOLD_CONTOUR)
-            drawn_contour_edge, _ = self.draw_bounding_rectangle(contours_edge, new_image, self.EDGE_DETECTION_CONTOUR)
-            drawn_contour_adaptive, coordinates_adaptive = self.draw_bounding_rectangle(contours_adaptive, image,
+            # drawn_contour_edge, _ = self.draw_bounding_rectangle(contours_edge, image, self.EDGE_DETECTION_CONTOUR)
+            drawn_contour_adaptive, coordinates_adaptive = self.draw_bounding_rectangle(contours_adaptive, new_image,
                                                                                         self.ADAPTIVE_THRESHOLD_CONTOUR)
-            self.display_images(drawn_contour_edge, drawn_contour_adaptive)
-            # yolo = self.convert_yolo_format(coordinates_adaptive, image.shape[1], image.shape[0])
+            coordinates.append(coordinates_adaptive)
+            # self.display_images(drawn_contour_edge, drawn_contour_adaptive)
+            self.display_annotated_image(drawn_contour_adaptive)
             self.upload_processed_image(meta, new_image, label, coordinates_adaptive)
-            # print("Yolo coordinates", yolo)
+        self.annotated_data = (metadata, data, labels, coordinates)
 
     @staticmethod
     def upload_processed_image(metadata, image, label, coordinates):
@@ -118,4 +110,4 @@ class Annotation:
         upload.upload_data(metadata, annotation_details)
 
 
-annotation = Annotation()
+# annotation = Annotation()

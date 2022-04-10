@@ -1,11 +1,10 @@
-from initialize_configuration import Configuration
+from initialize_configuration import initialize_cloudant_configuration
 
 
 class UploadData:
 
     def __init__(self):
-        config = Configuration()
-        self.cloudant, _, self.db = config.initialize_cloudant_configuration()
+        self.cloudant, _, self.db = initialize_cloudant_configuration()
 
     def upload_data(self, metadata, annotation_meta):
         metadata = metadata['doc']
