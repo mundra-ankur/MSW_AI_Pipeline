@@ -35,12 +35,12 @@ Source Files
   
   ##### Response
   ```
-  configuration = Configuration()
-  cos_client, bucket = configuration.initialize_cos_configuration()
+   client, bucket = initialize_cos_configuration()
   ```
-  Returns 
-  1. cos_client - ibm_boto3 Client
-  2. bucket - str (from which data needs to be fetched)
+   | Parameter | Description |
+   | --- | ----------- |
+   | client | cos client instance |
+   | bucket | cos bucket name from where data is fetched |
 </details>  
 
 <details>
@@ -49,36 +49,198 @@ Source Files
   
   ##### Response
   ```
-   cloudant, db, processed_db = configuration.initialize_cloudant_configuration()
-  ```
-  Returns 
-  1. cloudant_client - allows access to Cloudant DB
-  2. db - database name from where documents needs to be queried
-  2. processed db - database name where processed data documents need to be stored
+   cloudant, db, processed_db = initialize_cloudant_configuration()
+  ``` 
+   | Parameter | Description |
+   | --- | ----------- |
+   | cloudant_client | Cloudant instance - allows access to Cloudant DB |
+   | db | database name from where documents needs to be queried |
+   | processed_db | database name where processed data documents need to be stored |
 </details>  
 
 <details>
   <summary>Read Image From COS</summary>
-  This method parse the config file which includes all the realted credentials and details needed for creating Cloudant Client.
+   Convert the downloaded streaming body objects to numpy ndarray <br>
+   
+   ##### Request
+   
+   | Parameter | Description |
+   | --- | ----------- |
+   | client | cos client instance |
+   | bucket | cos bucket name from where data is fetched |
+   | file | file name to fetch |
   
   ##### Response
   ```
-   cloudant, db, processed_db = configuration.initialize_cloudant_configuration()
+   image = read_image(cos, bucket, file)
   ```
   Returns 
-  1. cloudant_client - allows access to Cloudant DB
-  2. db - database name from where documents needs to be queried
-  2. processed db - database name where processed data documents need to be stored
+   | Parameter | Description |
+   | --- | ----------- |
+   | image | file fetched from cos bucket in a numpy array  |
+
 </details>  
 
-### Data Preprocessing
 <details>
-  <summary></summary>
+  <summary>Download data from IBM Cloud Object storage</summary>
+    Download the data from cos bucket as per the request
+    
    ##### Request
-    | Parameters |
-    | :---       |
-    |     |     |
-</details>
+   
+   | Parameter | Description |
+   | --- | ----------- |
+   | limit | specify the number of returned documents to limit the result to. Possible values: value ≥ 0 |
+   | cloudant | cloudant instance to connect to cloudant |
+   | cloudant_db | databse name from which documents need to be fetched |
+   | processed | specify whether to fetch the processed data, default: False |
+  
+  ##### Response
+  ```
+   if processed:
+      return metadata, image_data, labels, annotations
+   return metadata, image_data, labels
+  ```
+   | Parameter | Description |
+   | --- | ----------- |
+   | metadata | List of metadata files |
+   | image_data | List of images (numpy array) |
+   | labels | List of label for each image |
+   | annotations | Annotation details for each image object |
+</details>  
+
+
+### Data Preprocessing
+Source Files:
+- [Data Preprocessing](https://github.com/amundra02/MSW_AI_Pipeline/blob/main/src/data_preprocessing.py)
+- [Data Annotation](https://github.com/amundra02/MSW_AI_Pipeline/blob/main/src/data_annotation.py)
+
+#### Methods
+<details>
+  <summary>Resize image by specifying width, height, and interpolation method</summary>
+  Resize the input image with the given parameters.
+   
+   ##### Request
+   
+   | Parameter | Description |
+   | --- | ----------- |
+   | image | Input image file |
+   | width | Output image width |
+   | height | Output image height |
+   | interpolation | Opencv Interpolation Method |
+  
+  ##### Response
+  ```
+   resized_image = resize(image, width, height, interpolation_method)
+  ```
+   | Parameter | Description |
+   | --- | ----------- |
+   | resized_image | Resized image |
+</details>  
+
+<details>
+  <summary>Get Resized Data</summary>
+  Resize the input data as per the specification
+   
+   ##### Request
+   
+   | Parameter | Description |
+   | --- | ----------- |
+   | width | Output image width |
+   | height | Output image height |
+   | interpolation_method | Opencv Interpolation Method |
+  
+  ##### Response
+  ```
+   image_resize = ImageResize(width, height, interpolation_method)
+   metadata, resized_data, labels = image_resize.get_resized_data()
+  ```
+   | Parameter | Description |
+   | --- | ----------- |
+   | metadata | List of metadata files |
+   | resized_data | List of resized images (numpy array) |
+   | labels | List of label for each image |
+</details>  
+
+<details>
+  <summary>Find Contour in an Image</summary>
+  This method finds all the contours in an input image based on the input method. It takes advantage of opencv methods to remove noise, detect edges, perform adaptive thresholding, and to detect contours.
+     
+   
+   ##### Request
+   
+   | Parameter | Description |
+   | --- | ----------- |
+   | image | Input image |
+   | method | method through which contour should be detected. 
+              Possible values - adaptive thresholding(0), edge detection (1);
+              Default - 0 |
+  
+  ##### Response
+  ```
+   contours = find_contours(image, 0)
+  ```
+   | Parameter | Description |
+   | --- | ----------- |
+   | contours | detected contours |
+</details>  
+
+ <details>
+  <summary>Draw bounding rectangle on an object in an image </summary>
+  Finds the coordinates of the rectangle which contains the object in a given contour and draws the rectangle on an input image.
+     
+   
+   ##### Request
+   
+   | Parameter | Description |
+   | --- | ----------- |
+   | contours | detected contours of an image|
+   | image | Input image |
+   | method | method through which contour should be detected. 
+              Possible values - adaptive thresholding(0), edge detection (1);
+              Default - 0 |
+  
+  ##### Response
+  ```
+   drawn_image, coordinates = draw_bounding_rectangle(contours, image, 0)
+  ```
+   | Parameter | Description |
+   | --- | ----------- |
+   | drawn_image | Image with rectangle on the object |
+   | coordinates | Coordinates of the drawn rectangle in the form <x, y, w, h> |
+    
+</details>  
+    
+   <details>
+   <summary>Create the annotation deatils and upload the processed data</summary>
+   Generate the metadata for processed image data and upload the new metadata in cloudant database with processed meta files.
+
+
+   ##### Request
+
+   | Parameter | Description |
+   | --- | ----------- |
+   | metadata | metadata file of an image |
+   | image | Processed image file |
+   | label | Label of processed image |
+   | coordinates | Annotation coordinaes of image |
+
+   ##### Response
+   ```
+    upload_processed_image(metadata, image, label, coordinates)
+   ```
+   </details>  
+    
+   <details>
+   <summary>Get annotated data</summary>
+   Get the annotated processed data
+
+   ##### Response
+   ```
+    annotation = Annotation()
+    annotated_data = annotation.get_annotated_data()
+   ```
+   </details>  
+
 
 ### Feature Engineering
 
