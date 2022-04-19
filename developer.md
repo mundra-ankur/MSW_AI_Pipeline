@@ -25,9 +25,9 @@ Peek inside the requirements file if you have everything already installed. Most
 
 ### Data Connections
 Source Files
-- [Initialize Configuration](https://github.com/amundra02/ai_pipeline/blob/main/src/initialize_configuration.py)
+- [Cloud Helper](https://github.com/amundra02/MSW_AI_Pipeline/blob/main/src/cloud_helper.py)
 - [Download Data](https://github.com/amundra02/ai_pipeline/blob/main/src/download_data.py)
-- [Upload Processed Data](https://github.com/amundra02/ai_pipeline/blob/main/src/upload_processed_data.py)
+- [Upload Data](https://github.com/amundra02/MSW_AI_Pipeline/blob/main/src/upload_data.py)
 #### Methods
 <details>
   <summary>Initialize IBM cos configuration </summary>
@@ -35,12 +35,11 @@ Source Files
   
   ##### Response
   ```
-   client, bucket = initialize_cos_configuration()
+   client = get_cos_client()
   ```
    | Parameter | Description |
    | --- | ----------- |
    | client | cos client instance |
-   | bucket | cos bucket name from where data is fetched |
 </details>  
 
 <details>
@@ -49,13 +48,12 @@ Source Files
   
   ##### Response
   ```
-   cloudant, db, processed_db = initialize_cloudant_configuration()
+   cloudant, db = get_cloudant_client()
   ``` 
    | Parameter | Description |
    | --- | ----------- |
    | cloudant_client | Cloudant instance - allows access to Cloudant DB |
    | db | database name from where documents needs to be queried |
-   | processed_db | database name where processed data documents need to be stored |
 </details>  
 
 <details>
