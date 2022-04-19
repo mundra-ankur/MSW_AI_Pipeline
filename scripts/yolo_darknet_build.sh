@@ -2,7 +2,7 @@
 
 
 ### Darknet script
-SETUP_DIRECTORY=/home/amundra/Yolo/
+SETUP_DIRECTORY=$HOME/Yolo
 
 if [ -d "$SETUP_DIRECTORY" ]; then
  echo "Setup Directory: ${SETUP_DIRECTORY}"

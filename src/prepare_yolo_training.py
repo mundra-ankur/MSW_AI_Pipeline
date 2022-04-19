@@ -1,6 +1,6 @@
 import argparse
 import os
-from pathlib import Path
+# from pathlib import Path
 
 import cv2
 from pywget import wget
@@ -24,15 +24,18 @@ def check_arguments_errors(args):
     if not os.path.exists(args.darknet_data_directory):
         raise (ValueError("Invalid data directory path {}".format(os.path.abspath(args.darknet_data_directory))))
     if not os.path.exists(args.train_backup):
-        Path(args.train_backup).mkdir(parents=False, exist_ok=True)
+        os.makedirs(args.train_backup, exist_ok=True)
+        # Path(args.train_backup).mkdir(parents=False, exist_ok=True)
         print("Backup directory created {}".format(os.path.abspath(args.train_backup)))
 
 
 def split_train_test_data(metadata, data, labels, coordinates):
     train_dir, test_dir = "train/", "test/"
 
-    Path(train_dir).mkdir(parents=True, exist_ok=True)
-    Path(test_dir).mkdir(parents=True, exist_ok=True)
+    os.makedirs(train_dir, exist_ok=True)
+    os.makedirs(test_dir, exist_ok=True)
+    # Path(train_dir).mkdir(parents=True, exist_ok=True)
+    # Path(test_dir).mkdir(parents=True, exist_ok=True)
 
     x_train, _, _, _ = train_test_split(metadata, labels, test_size=0.2, random_state=40)
 

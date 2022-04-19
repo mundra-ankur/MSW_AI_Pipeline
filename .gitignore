@@ -1,5 +1,6 @@
 data/
 config/ibm_config.json
+config/ibm_config.ini
 model/.DS_Store
 .DS_Store
 .idea/
