@@ -5,3 +5,5 @@ ibm-cos-sdk
 ibmcloudant
 tensorflow
 scikit-learn
+pillow
+pywget

@@ -3,8 +3,9 @@ from io import BytesIO
 
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
+from ibm_botocore.exceptions import ClientError
 
-from initialize_configuration import initialize_cos_configuration
+from cloud_helper import get_cos_client, get_cloudant_client, get_cloudant_processed_db, get_cos_resource
 
 
 # Method to read image from cos into numpy.ndarray
@@ -42,29 +43,57 @@ def display_sample_date(data, items):
 
 
 # method to access cos data based on search query (currently - bucket name)
-def get_data_ibm_cos(limit, cloudant, cloudant_db, processed=False):
+def get_data_ibm_cos(limit):
     image_data, labels, annotation = [], [], []
-    cos, _ = initialize_cos_configuration()
-    # print('Database', cloudant.get_all_dbs().get_result())
-    documents = cloudant.post_all_docs(db=cloudant_db, include_docs=True, limit=limit).get_result()
+    cos = get_cos_client()
+    cloudant, db = get_cloudant_client()
+    documents = cloudant.post_all_docs(db=db, include_docs=True, limit=limit).get_result()
     metadata = documents['rows']
 
     # fetch image data for each metadata file
     for item in metadata:
         bucket = item['doc']['system_metadata']['bucket']
         file = item['doc']['system_metadata']['filename']
-        # print(item['doc']['_id'], bucket, file)
-        if processed:
-            annotation_detail = item['doc']['user_metadata']['data_details']['annotation_details']['annotations']
-            labels.append(annotation_detail[0]['label'])
-            annotation.append(annotation_detail[0]['coordinates'])
-        else:
-            labels.append(file.split("/")[1])
+        labels.append(file.split("/")[1])
+        # print("Fetching image", file, "from bucket", bucket, "with label", labels[-1])
+        image = read_image(cos, bucket, file)
+
+        if image is not None:
+            image_data.append(image)
+    return metadata, image_data, labels
+
+
+# method to access cos data based on search query (currently - bucket name)
+def get_preprocessed_data(limit):
+    image_data, labels, annotation = [], [], []
+    cos = get_cos_client()
+    cloudant, _ = get_cloudant_client()
+    db = get_cloudant_processed_db()
+    documents = cloudant.post_all_docs(db=db, include_docs=True, limit=limit).get_result()
+    metadata = documents['rows']
+
+    # fetch image data for each metadata file
+    for item in metadata:
+        bucket = item['doc']['system_metadata']['bucket']
+        file = item['doc']['system_metadata']['filename']
+        annotation_detail = item['doc']['user_metadata']['data_details']['annotation_details']['annotations']
+
+        # For Single Object
+        labels.append(annotation_detail[0]['label'])
+        annotation.append(annotation_detail[0]['coordinates'])
 
         image = read_image(cos, bucket, file)
         if image is not None:
             image_data.append(image)
+    return metadata, image_data, labels, annotation
 
-    if processed:
-        return metadata, image_data, labels, annotation
-    return metadata, image_data, labels
+
+def download_file_from_cos(bucket, key_name, local_file_path):
+    print("Retrieving item from bucket: {0}, key: {1}".format(bucket, key_name))
+    try:
+        cos_resource = get_cos_resource()
+        cos_resource.Object(bucket, key_name).download_file(local_file_path)
+    except ClientError as be:
+        print("CLIENT ERROR while retrieving file contents: {0}\n".format(be))
+    except Exception as e:
+        print("Unable to retrieve file contents: {0}".format(e))

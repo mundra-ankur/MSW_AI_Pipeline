@@ -1,8 +1,7 @@
 import cv2 as cv
-import numpy as np
 
 from data_preprocessing import ImageResize
-from upload_processed_data import UploadData
+from upload_data import UploadData
 
 
 class Annotation:
@@ -41,55 +40,14 @@ class Annotation:
         cv.rectangle(image, (x, y), (p, q), (255, 0, 0), 2)
         return image, (x, y, p - x, q - y)
 
-    # Draw a bounding box around largest contour
-    @staticmethod
-    def draw_bounding_rectangle_(contours, image):
-        x, y, w, h = 0, 0, 0, 0
-        area = 0
-        for c in contours:
-            if cv.contourArea(c) > area:
-                area = cv.contourArea(c)
-                x, y, w, h = cv.boundingRect(c)
-
-        # draw rectangle on biggest contour
-        cv.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)
-        return image, (x, y, w, h)
-
     @staticmethod
     def display_annotated_image(drawn_contour):
         cv.imshow('Contour with bounding box', drawn_contour)
         cv.waitKey(0)
         cv.destroyAllWindows()
 
-    @staticmethod
-    def display_images(image1, image2):
-        concatenated = np.concatenate((image1, image2), axis=1)
-        cv.imshow('Bounding Box: Edge Detection ---- Adaptive Threshold', concatenated)
-        cv.waitKey(0)
-        cv.destroyAllWindows()
-
     def get_annotated_data(self):
         return self.annotated_data
-
-    def __init__(self):
-        self.annotated_data = []
-        resize = ImageResize(416, 416, cv.INTER_LINEAR)
-        metadata, data, labels = resize.get_resized_data()
-        coordinates = []
-        # for file in os.listdir('data'):
-        for meta, image, label in zip(metadata, data, labels):
-            # Make a copy
-            new_image = image.copy()
-            # contours_edge = self.find_contours(new_image, self.EDGE_DETECTION_CONTOUR)
-            contours_adaptive = self.find_contours(new_image, self.ADAPTIVE_THRESHOLD_CONTOUR)
-            # drawn_contour_edge, _ = self.draw_bounding_rectangle(contours_edge, image, self.EDGE_DETECTION_CONTOUR)
-            drawn_contour_adaptive, coordinates_adaptive = self.draw_bounding_rectangle(contours_adaptive, new_image,
-                                                                                        self.ADAPTIVE_THRESHOLD_CONTOUR)
-            coordinates.append(coordinates_adaptive)
-            # self.display_images(drawn_contour_edge, drawn_contour_adaptive)
-            self.display_annotated_image(drawn_contour_adaptive)
-            self.upload_processed_image(meta, new_image, label, coordinates_adaptive)
-        self.annotated_data = (metadata, data, labels, coordinates)
 
     @staticmethod
     def upload_processed_image(metadata, image, label, coordinates):
@@ -105,9 +63,23 @@ class Annotation:
                 }
             ]
         }
+        UploadData(metadata, annotation_details, image)
 
-        upload = UploadData()
-        upload.upload_data(metadata, annotation_details)
+    def __init__(self):
+        resize = ImageResize(416, 416, cv.INTER_LINEAR)
+        metadata, data, labels = resize.get_resized_data()
+        coordinates = []
+        # for file in os.listdir('data'):
+        for meta, image, label in zip(metadata, data, labels):
+            # Make a copy
+            new_image = image.copy()
+            contours_adaptive = self.find_contours(new_image, self.ADAPTIVE_THRESHOLD_CONTOUR)
+            drawn_contour_adaptive, coordinates_adaptive = self.draw_bounding_rectangle(contours_adaptive, new_image,
+                                                                                        self.ADAPTIVE_THRESHOLD_CONTOUR)
+            coordinates.append(coordinates_adaptive)
+            # self.display_annotated_image(drawn_contour_adaptive)
+            self.upload_processed_image(meta, image, label, coordinates_adaptive)
+        self.annotated_data = (metadata, data, labels, coordinates)
 
 
-# annotation = Annotation()
+annotation = Annotation()
