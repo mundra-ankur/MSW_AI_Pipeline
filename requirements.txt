@@ -1,9 +1,10 @@
-opencv-python
+# opencv-python
 numpy
 matplotlib
 ibm-cos-sdk
 ibmcloudant
-tensorflow
+# tensorflow
 scikit-learn
 pillow
 pywget
+pathlib
