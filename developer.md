@@ -172,10 +172,12 @@ Source Files
    | metadata | metadata of image to be uploaded |
    | annotation_meta | Annotation details for image object |
    
-    ##### Response
-     ```
-      response = upload_metadata(metadata, annotation_meta)
-     ```
+   
+  ##### Response
+  ```
+   response = upload_metadata(metadata, annotation_meta)
+  ```
+   
    | Parameter | Description |
    | --- | ----------- |
    | response | api response of post call |
@@ -266,9 +268,7 @@ Source Files:
    | Parameter | Description |
    | --- | ----------- |
    | image | Input image |
-   | method | method through which contour should be detected. 
-              Possible values - adaptive thresholding(0), edge detection (1);
-              Default - 0 |
+   | method |contour detection method. Possible values - adaptive thresholding(0), edge detection (1); Default - 0 |
   
   ##### Response
   ```
@@ -281,6 +281,7 @@ Source Files:
 
  <details>
   <summary>Draw bounding rectangle on an object in an image </summary>
+   
   Finds the coordinates of the rectangle which contains the object in a given contour and draws the [rectangle](https://docs.opencv.org/3.4/d3/dc0/group__imgproc__shape.html#ga103fcbda2f540f3ef1c042d6a9b35ac7) on an input image.
      
    
@@ -290,9 +291,7 @@ Source Files:
    | --- | ----------- |
    | contours | detected contours of an image|
    | image | Input image |
-   | method | method through which contour should be detected. 
-              Possible values - adaptive thresholding(0), edge detection (1);
-              Default - 0 |
+   | method | contour detection method. Possible values - adaptive thresholding(0), edge detection (1); Default - 0 |
   
   ##### Response
   ```
