@@ -26,26 +26,43 @@ Peek inside the requirements file if you have everything already installed. Most
 ### Data Connections
 Source Files
 - [Cloud Helper](https://github.com/amundra02/MSW_AI_Pipeline/blob/main/src/cloud_helper.py)
+   - Parses the configuration [file](https://github.com/amundra02/MSW_AI_Pipeline/blob/main/config/ibm_config_example.ini) and create the necessary resources to connect to cloud.
+   - Create Cos Client, Cos Resource,and Clodant Client instance
+   
 - [Download Data](https://github.com/amundra02/ai_pipeline/blob/main/src/download_data.py)
 - [Upload Data](https://github.com/amundra02/MSW_AI_Pipeline/blob/main/src/upload_data.py)
 #### Methods
 <details>
-  <summary>Initialize IBM cos configuration </summary>
-  This method parse the config file which includes all the realted credentials and details needed for creating COS Client.
-  
+  <summary>Get Cos Client Instance </summary>
+   
   ##### Response
+   
   ```
    client = get_cos_client()
   ```
+   
    | Parameter | Description |
    | --- | ----------- |
    | client | cos client instance |
 </details>  
 
 <details>
-  <summary>Initialize IBM cloudant configuration </summary>
-  This method parse the config file which includes all the realted credentials and details needed for creating Cloudant Client.
-  
+  <summary>Get Cos resource Instance </summary>  
+   
+  ##### Response
+   
+  ```
+   resource = get_cos_resource()
+  ```
+   
+   | Parameter | Description |
+   | --- | ----------- |
+   | resource | cos resource instance |
+</details>  
+
+<details>
+  <summary>Get cloudant instance and database to fetch data </summary>
+   
   ##### Response
   ```
    cloudant, db = get_cloudant_client()
@@ -54,6 +71,30 @@ Source Files
    | --- | ----------- |
    | cloudant_client | Cloudant instance - allows access to Cloudant DB |
    | db | database name from where documents needs to be queried |
+</details>  
+
+<details>
+  <summary>Get Cos Bucket to upload processed data</summary>  
+   
+  ##### Response
+  ```
+   bucket_name = get_upload_bucket()
+  ```
+   | Parameter | Description |
+   | --- | ----------- |
+   | bucket_name | Cos Bucket name |
+</details>  
+
+<details>
+  <summary>Get clouant database name to upload processed metadata</summary>  
+   
+  ##### Response
+  ```
+   db_name = get_cloudant_processed_db()
+  ```
+   | Parameter | Description |
+   | --- | ----------- |
+   | db_name | Cloudant database name |
 </details>  
 
 <details>
@@ -87,16 +128,31 @@ Source Files
    
    | Parameter | Description |
    | --- | ----------- |
-   | limit | specify the number of returned documents to limit the result to. Possible values: value ≥ 0 |
-   | cloudant | cloudant instance to connect to cloudant |
-   | cloudant_db | databse name from which documents need to be fetched |
-   | processed | specify whether to fetch the processed data, default: False |
+   | limit | specify the number of documents to limit the results to. Possible values: value ≥ 0 |
   
   ##### Response
   ```
-   if processed:
-      return metadata, image_data, labels, annotations
-   return metadata, image_data, labels
+   metadata, image_data, labels = get_data_ibm_cos(limit)
+  ```
+   | Parameter | Description |
+   | --- | ----------- |
+   | metadata | List of metadata files |
+   | image_data | List of images (numpy array) |
+   | labels | List of label for each image |
+</details>  
+
+<details>
+  <summary>Download processed data from IBM Cloud Object storage</summary>
+   
+   ##### Request
+   
+   | Parameter | Description |
+   | --- | ----------- |
+   | limit | specify the number of documents to limit the results to. Possible values: value ≥ 0 |
+  
+  ##### Response
+  ```
+   metadata, image_data, labels, annotations = get_data_ibm_cos(limit)
   ```
    | Parameter | Description |
    | --- | ----------- |
@@ -106,11 +162,52 @@ Source Files
    | annotations | Annotation details for each image object |
 </details>  
 
+<details>
+   <summary>Create and upload metadata document for processed image file to Cloudant database</summary>
+  
+   ##### Request
+   
+   | Parameter | Description |
+   | --- | ----------- |
+   | metadata | metadata of image to be uploaded |
+   | annotation_meta | Annotation details for image object |
+   
+    ##### Response
+     ```
+      response = upload_metadata(metadata, annotation_meta)
+     ```
+   | Parameter | Description |
+   | --- | ----------- |
+   | response | api response of post call |
+</details>
+
+<details>
+  <summary>Write Image to COS</summary>
+   Convert the numpy ndarray image data into Image object and store the data in cos bucket <br>
+   
+   ##### Request
+   
+   | Parameter | Description |
+   | --- | ----------- |
+   | client | cos client instance |
+   | bucket | cos bucket name where data is uploaded |
+   | file | file name to upload |
+   | image | image data to be uploaded |
+  
+  ##### Response
+  ```
+      write_image_cos(cos, bucket, file, image)
+  ```
+</details> 
+
 
 ### Data Preprocessing
 Source Files:
 - [Data Preprocessing](https://github.com/amundra02/MSW_AI_Pipeline/blob/main/src/data_preprocessing.py)
+  - Data resizing: Resized data by specifying the width and height. [OpenCv Method](https://docs.opencv.org/4.5.5/da/d54/group__imgproc__transform.html#ga47a974309e9102f5f08231edc7e7529d)
 - [Data Annotation](https://github.com/amundra02/MSW_AI_Pipeline/blob/main/src/data_annotation.py)
+  - Bounding Boxes: bounding box for images with singular object.
+  - Methods: [Adaptive thresholding](https://docs.opencv.org/4.x/d7/d4d/tutorial_py_thresholding.html), [Canny edge detection](https://docs.opencv.org/4.x/da/d22/tutorial_py_canny.html), [Contour detection](https://docs.opencv.org/3.4/d3/dc0/group__imgproc__shape.html#ga17ed9f5d79ae97bd4c7cf18403e1689a)
 
 #### Methods
 <details>
@@ -184,7 +281,7 @@ Source Files:
 
  <details>
   <summary>Draw bounding rectangle on an object in an image </summary>
-  Finds the coordinates of the rectangle which contains the object in a given contour and draws the rectangle on an input image.
+  Finds the coordinates of the rectangle which contains the object in a given contour and draws the [rectangle](https://docs.opencv.org/3.4/d3/dc0/group__imgproc__shape.html#ga103fcbda2f540f3ef1c042d6a9b35ac7) on an input image.
      
    
    ##### Request
@@ -208,10 +305,9 @@ Source Files:
     
 </details>  
     
-   <details>
+<details>
    <summary>Create the annotation deatils and upload the processed data</summary>
    Generate the metadata for processed image data and upload the new metadata in cloudant database with processed meta files.
-
 
    ##### Request
 
@@ -226,9 +322,9 @@ Source Files:
    ```
     upload_processed_image(metadata, image, label, coordinates)
    ```
-   </details>  
+</details>  
     
-   <details>
+<details>
    <summary>Get annotated data</summary>
    Get the annotated processed data
 
@@ -237,7 +333,7 @@ Source Files:
     annotation = Annotation()
     annotated_data = annotation.get_annotated_data()
    ```
-   </details>  
+</details>  
 
 
 ### Feature Engineering
