@@ -340,6 +340,145 @@ Source Files:
 ### Algorithm Selection
 
 ### Training Infrastructure
+   Source File: [Prepare Training](https://github.com/amundra02/MSW_AI_Pipeline/blob/main/src/prepare_yolo_training.py)
+   
+#### Methods
+<details>
+   <summary>Split the downloaded data into Train & Validation</summary>
+
+   - Split the data in training and testing folders using [Sklearn train test split](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html) with test size of 20%.
+   - Creates the label file for each image file.
+   - Creates a file with all the labels.
+
+   ##### Request
+
+   | Parameter | Description |
+   | --- | ----------- |
+   | metadata | List of metadata files |
+   | image_data | List of images (numpy array) |
+   | labels | List of label for each image |
+   | annotations | Annotation details for each image object |
+
+
+   ##### Response
+   ```
+     split_tarin_test_data(metadata, image_data, labels, annotations)
+   ```
+</details>  
+   
+<details>
+   <summary>Create Yolo label file</summary>
+   
+   - Creates the label file for each image file with format <object-class> <x_center> <y_center> <width> <height>.
+   - Name of label file is same as the name of image
+ 
+   ##### Request
+
+   | Parameter | Description |
+   | --- | ----------- |
+   | annotation | Annotation coordinates for object in an image |
+   | filename | Name of the file to be created |
+   | image | Image object|
+   | label_id | Label id of object label |
+   
+   ##### Response
+   ```
+     create_yolo_label_file(annotation, filename, image, label_id)
+   ```
+</details>  
+
+<details>
+   <summary>Convert annotation coordinates in Yolo format</summary>
+   Converts the standard annotation coordinates of object in this format: <object-class> <x_center> <y_center> <width> <height>.
+ 
+   ##### Request
+
+   | Parameter | Description |
+   | --- | ----------- |
+   | coordinates | coordinates for object in an image |
+   | width | image width |
+   | height | image height|
+  
+   
+   ##### Response
+   ```
+     x, y, w, h = get_yolo_format_annotations(coordinates, width, height)
+   ```
+   | Parameter | Description |
+   | --- | ----------- |
+   | x | x_center relative to width of image |
+   | y | y_center relative to height of image |
+   | w | width of object relative to width of image|
+   | h | height of object relative to height of image|
+</details>  
+
+<details>
+   <summary>Create file with all the classes</summary>
+   
+  Create a __obj.names__ file which conatins all the avialable classes in a data sample.
+ 
+   ##### Request
+
+   | Parameter | Description |
+   | --- | ----------- |
+   | classes | set of all the vaialble classes of objects |
+   
+   ##### Response
+   ```
+     create_class_names_file(classes)
+   ```
+</details>
+   
+<details>
+   <summary>Append content of a directory in a file</summary>
+   
+  - List the contents of given data directory in a file. This is used to list all the train and test file names with __jpg__ extension which is an input to Yolo algorithm.
+   - This will list out the filename with relaive path to the darknet directory. 
+ 
+   ##### Request
+
+   | Parameter | Description |
+   | --- | ----------- |
+   | content_path | data directory |
+   | filename | filename where all the content will be listed |
+   
+   ##### Response
+   ```
+     append_dir_content_in_file(content_path, filename)
+   ```
+</details>
+   
+<details>
+   <summary>Create a file which contains the traing details for Yolo</summary>
+   
+   - append location of __Train.txt__ file which contains path to all the training files
+   - append location of __Test.txt__ file which contains path to all the validation files
+   - append location of classes( __obj.names__ ) file which contains all the class names
+   - append location of __backup__ directory which will be used for training backups
+ 
+   ##### Request
+
+   | Parameter | Description |
+   | --- | ----------- |
+   | backup_dir | Path of backup directory |
+   
+   ##### Response
+   ```
+     append_training_details(backup_dir)
+   ```
+</details>
+   
+<details>
+   <summary>Download Pretrained weights for Yolo Custom training</summary>
+   
+   Download weight file from [darknet repository](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.conv.137)
+   
+   ##### Response
+   ```
+     download_pretrained_weights()
+   ```
+</details>
+
 
 ### Model Deployment
 
